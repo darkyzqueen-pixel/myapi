@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
     try {
-        const mobile = req.query.mobile; // GET parameter
+        const mobile = req.query.mobile;
 
         if (!mobile) {
             return res.status(400).json({ error: "Mobile number missing" });
@@ -16,8 +16,16 @@ export default async function handler(req, res) {
             body: JSON.stringify({ value: mobile })
         });
 
-        const data = await response.json();
-        return res.status(200).json(data);
+        const text = await response.text(); // <-- take raw text first
+
+        // Try to convert to JSON
+        try {
+            const json = JSON.parse(text);
+            return res.status(200).json(json);
+        } catch (err) {
+            // If it's not JSON, return the raw HTML/text
+            return res.status(200).send(text);
+        }
 
     } catch (err) {
         return res.status(500).json({ error: "Server error", details: err.toString() });
